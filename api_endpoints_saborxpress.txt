@@ -1,0 +1,126 @@
+====================================================
+DOCUMENTACIÓN DE API REST - BACKEND SABORXPRESS
+====================================================
+Esta es la estructura detallada de todos los endpoints disponibles en Laravel.
+El frontend debe usar estos endpoints para comunicarse vía HTTP (ej. con Axios).
+
+*** NOTA DE SEGURIDAD ***
+Todas las rutas (excepto login) requieren enviar el token en la cabecera:
+Authorization: Bearer <token_aqui>
+
+====================================================
+1. AUTENTICACIÓN (CU 1)
+====================================================
+[POST] /api/login
+- Público
+- Body (JSON): 
+  {
+    "correo": "admin@ejemplo.com",
+    "contrasena": "password123"
+  }
+- Respuesta 200 OK: Retorna objeto "user" (incluye "tipo_usuario") y el "token".
+
+[POST] /api/logout
+- Requiere Token
+- Body: Vacio
+- Respuesta 200 OK: Destruye el token activo.
+
+====================================================
+2. GESTIÓN DE USUARIOS (CU 3, CU 5)
+====================================================
+[ GET ] /api/usuarios
+- Requiere Token (Solo Admin)
+- Respuesta 200 OK: Lista de usuarios (incluye relación "persona" anidada).
+
+[ GET ] /api/usuarios/{id}
+- Requiere Token (Solo Admin)
+- Respuesta 200 OK: Objeto único del usuario y su persona.
+
+[POST ] /api/usuarios
+- Requiere Token (Solo Admin)
+- Body (JSON):
+  {
+    "nombre": "Juan Pérez",
+    "telefono": "555123456",
+    "correo": "juan@cocina.com",
+    "contrasena": "123456",
+    "tipo_usuario": "Admin" // Valores permitidos: Admin, Cajero, Cocinero
+  }
+
+[ PUT ] /api/usuarios/{id}
+- Requiere Token (Solo Admin)
+- Nota: Para PUT/PATCH en postman o axios, mandar como JSON puro.
+- Body (JSON - Todos opcionales):
+  {
+    "nombre": "Juan Carlos M.",
+    "telefono": "111222333",
+    "correo": "juan_nuevo@cocina.com",
+    "contrasena": "nueva123",
+    "tipo_usuario": "Cajero"
+  }
+
+[DELETE] /api/usuarios/{id}
+- Requiere Token (Solo Admin)
+
+====================================================
+3. CATÁLOGO - CATEGORÍAS (CU 9)
+====================================================
+[ GET ] /api/categorias
+- Público para usuarios autenticados (Admin, Cajero, Cocinero)
+
+[ GET ] /api/categorias/{id}
+- Público para usuarios autenticados
+
+[POST ] /api/categorias
+- Requiere Token (Solo Admin)
+- Body (JSON):
+  {
+    "nombre": "Bebidas"
+  }
+
+[ PUT ] /api/categorias/{id}
+- Requiere Token (Solo Admin)
+- Body (JSON):
+  {
+    "nombre": "Bebidas Frías"
+  }
+
+[DELETE] /api/categorias/{id}
+- Requiere Token (Solo Admin)
+
+====================================================
+4. CATÁLOGO - PRODUCTOS (CU 9)
+====================================================
+[ GET ] /api/productos
+- Público para usuarios autenticados. Retorna relación "categoria" anidada.
+
+[ GET ] /api/productos/{id}
+- Público para usuarios autenticados
+
+[POST ] /api/productos
+- Requiere Token (Solo Admin)
+- Body (JSON):
+  {
+    "nombre": "Hamburguesa Sencilla",
+    "precio_venta": 45.50,
+    "id_categoria": 2
+  }
+
+[ PUT ] /api/productos/{id}
+- Requiere Token (Solo Admin)
+- Body (JSON - opcional):
+  {
+    "nombre": "Hamburguesa Premium",
+    "precio_venta": 65.00,
+    "id_categoria": 2
+  }
+
+[DELETE] /api/productos/{id}
+- Requiere Token (Solo Admin)
+
+====================================================
+5. BITÁCORA DEL SISTEMA (CU 6)
+====================================================
+[ GET ] /api/bitacora
+- Requiere Token (Solo Admin)
+- Respuesta 200 OK: Lista ordenada del historial de registros, útil para tablas "Read Only".
