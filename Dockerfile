@@ -1,24 +1,39 @@
-# Laravel API — PHP 8.3 + PostgreSQL (Supabase)
-FROM php:8.3-cli-bookworm
+# 1. Usamos PHP 8.3 con Apache (Ideal para Render)
+FROM php:8.3-apache
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git unzip libpq-dev \
-    && docker-php-ext-install pdo pgsql pdo_pgsql \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# 2. Instalar dependencias del sistema y extensiones de PostgreSQL
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    zip \
+    unzip \
+    git \
+    && docker-php-ext-install pdo pdo_pgsql pgsql
 
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# 3. Habilitar el módulo de reescritura de Apache (necesario para las rutas de Laravel)
+RUN a2enmod rewrite
 
+# 4. Configurar el DocumentRoot de Apache a la carpeta /public de Laravel
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/000-default.conf
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+# 5. Instalar Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# 6. Copiar los archivos del proyecto al contenedor
 WORKDIR /var/www/html
-
 COPY . .
 
-RUN composer install --no-dev --optimize-autoloader --no-interaction \
-    && mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache \
-    && chmod -R ug+rwx storage bootstrap/cache
+# 7. Instalar dependencias de PHP (Laravel)
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-ENV APP_ENV=production
-ENV LOG_CHANNEL=stderr
+# 8. Dar permisos correctos a las carpetas de almacenamiento y caché
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-EXPOSE 8080
+# 9. Puerto que usa Render por defecto
+EXPOSE 80
 
-CMD sh -c "php artisan migrate --force && php artisan config:cache && php artisan route:cache && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"
+# 10. Comando de inicio: Migraciones + Apache
+# El --force es obligatorio para que corra en producción
+CMD sh -c "php artisan migrate --force && apache2-foreground"
