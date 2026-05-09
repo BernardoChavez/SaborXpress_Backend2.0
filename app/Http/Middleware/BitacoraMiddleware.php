@@ -14,6 +14,9 @@ class BitacoraMiddleware
     {
         $response = $next($request);
 
+        // Desactivado temporalmente a petición del usuario
+        return $response;
+
         if (Auth::check()) {
             try {
                 $now = Carbon::now();

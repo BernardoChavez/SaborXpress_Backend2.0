@@ -1,0 +1,11 @@
+{
+    "name": "Paquete5Ventas",
+    "alias": "paquete5ventas",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Paquete5Ventas\\Providers\\Paquete5VentasServiceProvider"
+    ],
+    "files": []
+}

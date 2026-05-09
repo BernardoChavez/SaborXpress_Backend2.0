@@ -1,0 +1,11 @@
+{
+    "name": "Paquete2Usuarios",
+    "alias": "paquete2usuarios",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Paquete2Usuarios\\Providers\\Paquete2UsuariosServiceProvider"
+    ],
+    "files": []
+}

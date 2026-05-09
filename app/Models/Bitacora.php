@@ -2,6 +2,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Modules\Paquete1Seguridad\Models\Autenticacion;
 
 class Bitacora extends Model
 {

@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/paquete5ventas",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Paquete5Ventas\\": "app/",
+            "Modules\\Paquete5Ventas\\Database\\Factories\\": "database/factories/",
+            "Modules\\Paquete5Ventas\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Paquete5Ventas\\Tests\\": "tests/"
+        }
+    }
+}

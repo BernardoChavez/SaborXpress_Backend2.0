@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/paquete4inventarios",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Paquete4Inventarios\\": "app/",
+            "Modules\\Paquete4Inventarios\\Database\\Factories\\": "database/factories/",
+            "Modules\\Paquete4Inventarios\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Paquete4Inventarios\\Tests\\": "tests/"
+        }
+    }
+}

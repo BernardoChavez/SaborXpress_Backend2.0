@@ -1,0 +1,11 @@
+{
+    "name": "Paquete4Inventarios",
+    "alias": "paquete4inventarios",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Paquete4Inventarios\\Providers\\Paquete4InventariosServiceProvider"
+    ],
+    "files": []
+}

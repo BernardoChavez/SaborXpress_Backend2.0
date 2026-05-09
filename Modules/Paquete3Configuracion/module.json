@@ -1,0 +1,11 @@
+{
+    "name": "Paquete3Configuracion",
+    "alias": "paquete3configuracion",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Paquete3Configuracion\\Providers\\Paquete3ConfiguracionServiceProvider"
+    ],
+    "files": []
+}

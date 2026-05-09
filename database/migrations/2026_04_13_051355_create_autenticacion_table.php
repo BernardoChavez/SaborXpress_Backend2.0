@@ -10,8 +10,12 @@ return new class extends Migration {
             $table->unsignedBigInteger('id_persona')->primary();
             $table->string('correo', 100)->unique();
             $table->string('contrasena');
-            $table->string('tipo_usuario', 20);
+            $table->unsignedBigInteger('id_rol');
+            $table->integer('intentos_fallidos')->default(0);
+            $table->timestamp('bloqueado_hasta')->nullable();
             $table->timestamps();
+
+            $table->foreign('id_rol')->references('id')->on('roles')->onDelete('cascade');
 
             // Referencia correcta a "id" en la tabla "persona"
             $table->foreign('id_persona')->references('id')->on('persona')->onDelete('cascade');

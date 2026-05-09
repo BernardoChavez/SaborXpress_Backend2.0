@@ -1,0 +1,9 @@
+{
+    "Paquete1Seguridad": true,
+    "Php": true,
+    "Artisan": true,
+    "Paquete2Usuarios": true,
+    "Paquete3Configuracion": true,
+    "Paquete4Inventarios": true,
+    "Paquete5Ventas": true
+}
