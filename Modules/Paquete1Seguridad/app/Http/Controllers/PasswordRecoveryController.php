@@ -1,5 +1,4 @@
 <?php
-
 namespace Modules\Paquete1Seguridad\Http\Controllers;
 
 use App\Http\Controllers\Controller;
