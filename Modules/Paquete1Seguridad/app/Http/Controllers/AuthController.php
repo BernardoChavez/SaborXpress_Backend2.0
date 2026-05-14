@@ -23,53 +23,67 @@ class AuthController extends Controller
 
         $userAuth = Autenticacion::where('correo', $fields['correo'])->first();
 
-        // Si no existe el usuario, retorno error genérico
         if (!$userAuth) {
             return response()->json(['message' => 'Correo o contraseña incorrectos.'], 401);
         }
 
-        // Verificar bloqueo (CU4)
         if ($userAuth->bloqueado_hasta && Carbon::now()->lessThan($userAuth->bloqueado_hasta)) {
             $segundos = Carbon::now()->diffInSeconds($userAuth->bloqueado_hasta);
             return response()->json([
-                'message' => 'Cuenta bloqueada temporalmente por demasiados intentos fallidos. Intenta en ' . $segundos . ' segundos.'
+                'message' => 'Cuenta bloqueada temporalmente. Intenta en ' . $segundos . ' segundos.'
             ], 403);
         }
 
-        // Si la contraseña es incorrecta
         if (!Hash::check($fields['contrasena'], $userAuth->contrasena)) {
             $userAuth->intentos_fallidos += 1;
-            
-            // Si llega a 3 intentos fallidos, bloquear por 1 minuto
             if ($userAuth->intentos_fallidos >= 3) {
                 $userAuth->bloqueado_hasta = Carbon::now()->addMinutes(1);
                 $userAuth->save();
-                return response()->json(['message' => 'Cuenta bloqueada por 1 minuto debido a 3 intentos fallidos.'], 403);
+                return response()->json(['message' => 'Cuenta bloqueada por 1 minuto.'], 403);
             }
-            
             $userAuth->save();
-            return response()->json([
-                'message' => 'Contraseña incorrecta. Te quedan ' . (3 - $userAuth->intentos_fallidos) . ' intentos.'
-            ], 401);
+            return response()->json(['message' => 'Contraseña incorrecta.'], 401);
         }
 
-        // Si el login es exitoso, resetear intentos
         $userAuth->intentos_fallidos = 0;
         $userAuth->bloqueado_hasta = null;
         $userAuth->save();
 
         // Obtener el rol real de la tabla roles
-        $rol = Rol::find($userAuth->id_rol);
+        $rol = Rol::with('permisos.casoUso')->find($userAuth->id_rol);
         $nombreRol = $rol ? $rol->nombre : 'SinRol';
+        
+        $abilities = [$nombreRol]; // <--- AÑADIMOS EL NOMBRE DEL ROL PARA LAS RUTAS ACTUALES
+        
+        if ($rol) {
+            foreach ($rol->permisos as $permiso) {
+                if ($permiso->puede_ver) $abilities[] = $permiso->casoUso->codigo . ":ver";
+                if ($permiso->puede_crear) $abilities[] = $permiso->casoUso->codigo . ":crear";
+                if ($permiso->puede_editar) $abilities[] = $permiso->casoUso->codigo . ":editar";
+                if ($permiso->puede_eliminar) $abilities[] = $permiso->casoUso->codigo . ":eliminar";
+            }
+        }
 
-        // Creamos el token con la habilidad del rol
-        $token = $userAuth->createToken('saborxpress_token', [$nombreRol])->plainTextToken;
+        // Creamos el token con las habilidades de la matriz
+        $token = $userAuth->createToken('saborxpress_token', $abilities)->plainTextToken;
+
+        // 📝 REGISTRO EN BITÁCORA (Login Exitoso)
+        \App\Models\Bitacora::create([
+            'id_usuario' => $userAuth->id_persona,
+            'accion' => 'LOGIN',
+            'accion_detalle' => "El usuario inició sesión como {$nombreRol}",
+            'ip' => $request->ip(),
+            'fecha' => now()->toDateString(),
+            'hora_inicio' => now()->format('H:i:s'),
+            'hora_cierre' => now()->format('H:i:s'),
+        ]);
 
         return response()->json([
             'user' => [
                 'id_persona' => $userAuth->id_persona,
                 'correo' => $userAuth->correo,
-                'tipo_usuario' => $nombreRol // Mantenemos tipo_usuario en la respuesta para no romper el front
+                'tipo_usuario' => $rol->nombre,
+                'permisos' => $abilities // Enviamos los códigos al front
             ],
             'token' => $token
         ], 200);
@@ -77,11 +91,21 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        // 📝 REGISTRO EN BITÁCORA (Logout)
+        if ($request->user()) {
+            \App\Models\Bitacora::create([
+                'id_usuario' => $request->user()->id_persona,
+                'accion' => 'LOGOUT',
+                'accion_detalle' => 'El usuario cerró su sesión de forma segura',
+                'ip' => $request->ip(),
+                'fecha' => now()->toDateString(),
+                'hora_inicio' => now()->format('H:i:s'),
+                'hora_cierre' => now()->format('H:i:s'),
+            ]);
+        }
 
-        return response([
-            'message' => 'Sesión cerrada con éxito'
-        ], 200);
+        $request->user()->currentAccessToken()->delete();
+        return response(['message' => 'Sesión cerrada con éxito'], 200);
     }
 
     public function register(Request $request)
@@ -90,7 +114,7 @@ class AuthController extends Controller
             'nombre' => 'required|string|max:100',
             'telefono' => 'nullable|string|max:20',
             'correo' => 'required|email|unique:autenticacion,correo',
-            'contrasena' => ['required', 'string', Password::min(8)->mixedCase()->numbers()->symbols()],
+            'contrasena' => ['required', 'string', Password::min(8)],
         ]);
 
         return DB::transaction(function () use ($validated) {
@@ -108,17 +132,18 @@ class AuthController extends Controller
                 'id_rol' => $rolCliente->id,
             ]);
 
-            $token = $userAuth->createToken('saborxpress_token', ['Cliente'])->plainTextToken;
+            // Clientes por defecto solo ven catálogo
+            $token = $userAuth->createToken('saborxpress_token', ['CU8:ver'])->plainTextToken;
 
             return response()->json([
                 'user' => [
                     'id_persona' => $userAuth->id_persona,
                     'correo' => $userAuth->correo,
-                    'tipo_usuario' => 'Cliente'
+                    'tipo_usuario' => 'Cliente',
+                    'permisos' => ['CU8:ver']
                 ],
                 'token' => $token
             ], 201);
         });
     }
 }
-
