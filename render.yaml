@@ -1,21 +1,27 @@
-# Blueprint Render: https://render.com/docs/blueprint-spec
-# Tras conectar el repo, Render puede crear el servicio desde este archivo.
 services:
   - type: web
-    name: saborxpress-api
-    runtime: docker
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
+    name: saborxpress-backend-2-0
+    env: docker
     plan: free
-    healthCheckPath: /up
+    region: ohio
     envVars:
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
         value: false
-      - key: LOG_CHANNEL
-        value: stderr
-      - key: LOG_LEVEL
-        value: warning
-      # Configura en el panel de Render (no subas secretos al repo):
-      # APP_KEY, APP_URL, DB_*, CORS_ALLOWED_ORIGINS, FRONTEND_URL
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_SSLMODE
+        value: require
+      - key: APP_KEY
+        sync: false # Debes ponerla manualmente en el panel de Render por seguridad
+      - key: DB_HOST
+        sync: false # Los datos de Supabase van en el panel
+      - key: DB_PORT
+        sync: false
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false

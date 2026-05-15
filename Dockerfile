@@ -1,39 +1,30 @@
-# 1. Usamos PHP 8.3 con Apache (Ideal para Render)
 FROM php:8.3-apache
 
-# 2. Instalar dependencias del sistema y extensiones de PostgreSQL
+# 1. Instalar extensiones necesarias para Laravel y PostgreSQL
 RUN apt-get update && apt-get install -y \
     libpq-dev \
+    libpng-dev \
     zip \
     unzip \
     git \
-    && docker-php-ext-install pdo pdo_pgsql pgsql
+    && docker-php-ext-install pdo pdo_pgsql gd
 
-# 3. Habilitar el módulo de reescritura de Apache (necesario para las rutas de Laravel)
+# 2. Configurar Apache (Habilitar mod_rewrite para Laravel)
 RUN a2enmod rewrite
+COPY .docker/apache.conf /etc/apache2/sites-available/000-default.conf
 
-# 4. Configurar el DocumentRoot de Apache a la carpeta /public de Laravel
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/000-default.conf
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
-
-# 5. Instalar Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# 6. Copiar los archivos del proyecto al contenedor
+# 3. Copiar el código al contenedor
 WORKDIR /var/www/html
 COPY . .
 
-# 7. Instalar dependencias de PHP (Laravel)
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# 4. Instalar Composer y dependencias
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN composer install --no-dev --optimize-autoloader
 
-# 8. Dar permisos correctos a las carpetas de almacenamiento y caché
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# 5. Permisos para carpetas de Laravel
+RUN chown -R www-data:www-data storage bootstrap/cache
+RUN chmod -R 775 storage bootstrap/cache
 
-# 9. Puerto que usa Render por defecto
+# 6. Exponer puerto y comando de inicio
 EXPOSE 80
-
-# 10. Comando de inicio: Migraciones + Apache
-# El --force es obligatorio para que corra en producción
-CMD sh -c "php artisan migrate --force && apache2-foreground"
+CMD php artisan migrate --force && apache2-foreground
