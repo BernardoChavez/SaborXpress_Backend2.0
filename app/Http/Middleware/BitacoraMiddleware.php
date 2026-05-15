@@ -1,5 +1,9 @@
 <?php
 
+// ── MIDDLEWARE: BitacoraMiddleware ──────────────────────────────────────────
+// PROPÓSITO: Auditoría Forense Técnica. Registra quién, cuándo y qué hizo.
+// ─────────────────────────────────────────────────────────────────────────────
+
 namespace App\Http\Middleware;
 
 use Closure;
@@ -10,6 +14,10 @@ use Illuminate\Support\Facades\Log;
 
 class BitacoraMiddleware
 {
+    /**
+     * MOTOR DE AUDITORÍA: Captura acciones CRUD (Create, Update, Delete)
+     * automáticamente basándose en el método HTTP.
+     */
     public function handle($request, Closure $next)
     {
         $startTime = Carbon::now();

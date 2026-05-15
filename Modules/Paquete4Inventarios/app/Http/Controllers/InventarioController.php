@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * APARTADO: GESTIÓN DE INVENTARIOS Y TRANSFORMACIÓN (BACKEND)
+ * CONTROLADOR: InventarioController.php
+ * FUNCIÓN: Gestiona el stock de materia prima y productos procesados. 
+ *          Incluye la lógica de "Transformación" (Bruto -> Procesado) y 
+ *          el consumo automático de insumos mediante Recetas.
+ */
+
 namespace Modules\Paquete4Inventarios\Http\Controllers;
 
 use App\Http\Controllers\Controller;

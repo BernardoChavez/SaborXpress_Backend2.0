@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * APARTADO: SEGURIDAD Y ACCESO (BACKEND)
+ * CONTROLADOR: AuthController.php
+ * FUNCIÓN: Procesa el inicio de sesión, valida credenciales, genera el Token JWT
+ *          y registra el evento en la Bitácora de Auditoría.
+ */
+
 namespace Modules\Paquete1Seguridad\Http\Controllers;
 
 use App\Http\Controllers\Controller;
